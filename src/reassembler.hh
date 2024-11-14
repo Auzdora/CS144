@@ -1,12 +1,14 @@
 #pragma once
 
 #include "byte_stream.hh"
+#include <map>
+#include <math.h>
 
 class Reassembler
 {
 public:
   // Construct Reassembler to write into given ByteStream.
-  explicit Reassembler( ByteStream&& output ) : output_( std::move( output ) ) {}
+  explicit Reassembler( ByteStream&& output ) : output_( std::move( output ) ), unassemble_map_{} {}
 
   /*
    * Insert a new substring to be reassembled into a ByteStream.
@@ -41,5 +43,14 @@ public:
   const Writer& writer() const { return output_.writer(); }
 
 private:
+  // internal function to push data either to bytestream or unassemble map
+  void push(uint64_t first_index, std::string data);
+
+  void merge_and_insert(uint64_t first_index, std::string data);
+
   ByteStream output_; // the Reassembler writes to this ByteStream
+  std::map<uint64_t, std::string> unassemble_map_;
+  uint64_t current_index_{0};
+  uint64_t full_data_len_{0};
+  bool ready_to_close_{false};
 };
